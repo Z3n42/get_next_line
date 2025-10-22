@@ -75,7 +75,7 @@ The `BUFFER_SIZE` can be any positive integer.
 
 ## 🚀 Usage
 
-### Including in Your Project
+### Including in Project
 
 1. **Copy files to your project:**
 ```bash
@@ -221,7 +221,7 @@ int get_next_line(int fd, char **line);
 
 ### Static Variable Strategy
 
-Your implementation uses a **single static variable** to preserve data:
+Implementation uses a **single static variable** to preserve data:
 
 #### Mandatory Version
 ```c
@@ -281,7 +281,7 @@ int get_next_line(int fd, char **line)
 
 ### Helper Functions
 
-Your `get_next_line_utils.c` implements 5 custom functions:
+`get_next_line_utils.c` implements 5 custom functions:
 
 #### 1. `ft_strlen()` - Dual-purpose length
 ```c
@@ -520,7 +520,7 @@ gcc -D BUFFER_SIZE=1000000 get_next_line.c get_next_line_utils.c gnlmain.c
 
 ### Included Test Files
 
-Your repository includes several test mains:
+Repository includes several test mains:
 
 ```bash
 # Root level test

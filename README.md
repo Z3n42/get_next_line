@@ -7,13 +7,13 @@
 <p>
   <img src="https://img.shields.io/badge/Score-115%2F100-success?style=for-the-badge&logo=42" alt="42 Score"/>
   <img src="https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c&logoColor=white" alt="Language"/>
-  <img src="https://img.shields.io/github/license/Z3n42/get_next_line?style=for-the-badge" alt="License"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"/>
   <img src="https://img.shields.io/badge/42-Urduliz-000000?style=for-the-badge&logo=42&logoColor=white" alt="42 Urduliz"/>
 </p>
 
 *A function that reads and returns one line at a time from a file descriptor, introducing the concept of static variables in C.*
 
-[Features](#-features) • [Installation](#%EF%B8%8F-installation) • [Usage](#-usage) • [Implementation](#-implementation-details) • [Testing](#-testing)
+[Installation](#%EF%B8%8F-installation) • [Usage](#-usage) • [Implementation](#-implementation-details) • [Testing](#-testing)
 
 </div>
 
@@ -22,7 +22,6 @@
 ## 📋 Table of Contents
 
 - [About the Project](#-about-the-project)
-- [Features](#-features)
 - [Installation](#%EF%B8%8F-installation)
 - [Usage](#-usage)
 - [Function Prototype](#-function-prototype)
@@ -30,76 +29,22 @@
 - [Project Structure](#-project-structure)
 - [Testing](#-testing)
 - [What I Learned](#-what-i-learned)
-- [Norm Compliance](#-norm-compliance)
 - [License](#-license)
 
 ---
 
 ## 🎯 About the Project
 
-**Get Next Line** is a project that challenges you to implement a function that reads a file line by line. Each call to `get_next_line()` returns the next line from a file descriptor, making it possible to read text files efficiently without loading the entire content into memory.
+**Get Next Line** challenges you to implement a function that reads a file line by line. Each call to `get_next_line()` returns the next line from a file descriptor, making it possible to read text files efficiently without loading the entire content into memory.
 
 ### Why Get Next Line?
 
-This project introduces one of the most powerful concepts in C programming: **static variables**. Understanding how to maintain state across function calls is crucial for:
+This project introduces **static variables** - one of the most powerful concepts in C programming:
 - **File I/O operations** - Reading large files efficiently
 - **Persistent data** - Maintaining context between function calls
 - **Buffer management** - Handling partial reads and leftovers
 - **Memory optimization** - Reading only what's needed at each call
-- **Multiple file descriptors** - Managing state for different sources simultaneously
-
-The completed function becomes an essential tool for any C project that requires line-by-line file processing.
-
----
-
-## ✨ Features
-
-<table>
-<tr>
-<td width="50%">
-
-### 📄 Line Reading
-- Reads one line per call
-- Handles files of any size
-- Returns line without `\n` terminator
-- EOF detection and handling
-- Works with stdin and file redirection
-
-</td>
-<td width="50%">
-
-### 🧠 Static Variables
-- Preserves buffer between calls
-- Single static variable (bonus)
-- No global variables used
-- Function-level scope persistence
-- Clean memory management
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🔧 Configurable Buffer
-- Compile-time BUFFER_SIZE definition
-- Works with BUFFER_SIZE from 1 to millions
-- Efficient memory usage
-- Optimized read operations
-- Dynamic adaptation to buffer size
-
-</td>
-<td width="50%">
-
-### 🎯 Multiple File Descriptors (Bonus)
-- Simultaneous handling of multiple FDs
-- Independent reading threads per FD
-- No interference between descriptors
-- Scalable to unlimited FDs
-- Thread-safe state management
-
-</td>
-</tr>
-</table>
+- **Multiple file descriptors** - Managing state for different sources (bonus)
 
 ---
 
@@ -108,7 +53,6 @@ The completed function becomes an essential tool for any C project that requires
 ### Prerequisites
 
 - **GCC** or **Clang** compiler
-- **Make** (optional, for easier compilation)
 - Unix-based system (Linux, macOS)
 
 ### Clone and Compile
@@ -119,13 +63,13 @@ git clone https://github.com/Z3n42/get_next_line.git
 cd get_next_line
 
 # Compile with custom BUFFER_SIZE (mandatory part)
-gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c -o gnl_test
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c your_main.c -o gnl_test
 
 # Compile with bonus (multiple file descriptors)
-gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line_bonus.c get_next_line_utils_bonus.c -o gnl_bonus_test
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 bonus/get_next_line_bonus.c bonus/get_next_line_utils_bonus.c your_main.c -o gnl_bonus
 ```
 
-The `BUFFER_SIZE` can be any positive integer (tested from 1 to 10,000,000).
+The `BUFFER_SIZE` can be any positive integer.
 
 ---
 
@@ -133,17 +77,17 @@ The `BUFFER_SIZE` can be any positive integer (tested from 1 to 10,000,000).
 
 ### Including in Your Project
 
-1. **Copy get_next_line files to your project:**
+1. **Copy files to your project:**
 ```bash
 cp get_next_line.c get_next_line_utils.c get_next_line.h your_project/
 ```
 
-2. **Include the header in your C files:**
+2. **Include the header:**
 ```c
 #include "get_next_line.h"
 ```
 
-3. **Compile with your desired BUFFER_SIZE:**
+3. **Compile with BUFFER_SIZE:**
 ```bash
 gcc -Wall -Wextra -Werror -D BUFFER_SIZE=1024 your_file.c get_next_line.c get_next_line_utils.c -o your_program
 ```
@@ -183,7 +127,7 @@ int main(void)
 }
 ```
 
-#### Reading from Standard Input
+#### Reading from stdin
 
 ```c
 #include "get_next_line.h"
@@ -195,7 +139,7 @@ int main(void)
     int     ret;
 
     printf("Enter text (Ctrl+D to exit):\n");
-    while ((ret = get_next_line(0, &line)) > 0)  // 0 is stdin
+    while ((ret = get_next_line(0, &line)) > 0)  // 0 = stdin
     {
         printf("You entered: %s\n", line);
         free(line);
@@ -208,7 +152,7 @@ int main(void)
 #### Multiple File Descriptors (Bonus)
 
 ```c
-#include "get_next_line_bonus.h"
+#include "bonus/get_next_line_bonus.h"
 #include <fcntl.h>
 #include <stdio.h>
 
@@ -221,7 +165,7 @@ int main(void)
     fd2 = open("file2.txt", O_RDONLY);
     fd3 = open("file3.txt", O_RDONLY);
 
-    // Alternate reading between different files
+    // Alternate reading between files
     get_next_line(fd1, &line);
     printf("File 1: %s\n", line);
     free(line);
@@ -232,10 +176,6 @@ int main(void)
 
     get_next_line(fd1, &line);  // Back to file 1
     printf("File 1: %s\n", line);
-    free(line);
-
-    get_next_line(fd3, &line);
-    printf("File 3: %s\n", line);
     free(line);
 
     close(fd1);
@@ -249,8 +189,6 @@ int main(void)
 
 ## 📖 Function Prototype
 
-### Mandatory Part
-
 ```c
 int get_next_line(int fd, char **line);
 ```
@@ -259,92 +197,261 @@ int get_next_line(int fd, char **line);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `fd` | `int` | File descriptor to read from (file, stdin, etc.) |
+| `fd` | `int` | File descriptor to read from (0-999 valid range) |
 | `line` | `char **` | Address of pointer where the line will be stored |
 
 ### Return Values
 
 | Value | Meaning | Description |
 |-------|---------|-------------|
-| `1` | Line read | A complete line has been read and stored in `line` |
-| `0` | EOF reached | End of file has been reached (may still have a last line) |
-| `-1` | Error | An error occurred (invalid fd, malloc failure, read error) |
+| `1` | Line read | A complete line has been read successfully |
+| `0` | EOF reached | End of file (may still return last line) |
+| `-1` | Error | Invalid fd, malloc failure, or read error |
 
 ### Important Notes
 
-- The returned line **does not include** the `\n` character
-- The caller **must free** the returned line
-- Each call returns the **next line** in sequence
-- Works with any valid file descriptor (files, stdin, pipes, etc.)
+- Returns line **without** the `\n` character
+- Caller **must free** the returned line
+- Works with `fd` range: 0-999
+- `BUFFER_SIZE` must be greater than 0
 
 ---
 
 ## 🔧 Implementation Details
 
-### Static Variables Concept
+### Static Variable Strategy
 
-Static variables maintain their value between function calls, making them perfect for preserving file reading state:
+Your implementation uses a **single static variable** to preserve data:
 
+#### Mandatory Version
 ```c
-int get_next_line(int fd, char **line)
-{
-    static char *buffer;  // Preserves leftover data between calls
+static char *array;  // Persists between calls
+```
 
-    // buffer persists across multiple calls to get_next_line
-    // allowing us to save unprocessed data for the next line
-}
+#### Bonus Version (Multiple FDs)
+```c
+static char *a[256];  // Array indexed by fd (supports up to 256 FDs)
 ```
 
 ### Core Algorithm
 
-1. **Check for leftover data** from previous call in static buffer
-2. **Read from file descriptor** in chunks of BUFFER_SIZE
-3. **Search for newline** character in accumulated data
-4. **Extract line** up to newline (or EOF)
-5. **Save remainder** in static buffer for next call
-6. **Return appropriate status** (1, 0, or -1)
-
-### Buffer Management Strategy
-
 ```c
-// Pseudocode of the reading strategy
-while (no newline found && not EOF)
+int get_next_line(int fd, char **line)
 {
-    read(fd, buffer, BUFFER_SIZE);
-    append buffer to accumulated data;
-    check for newline in accumulated data;
+    char        *buf;
+    ssize_t     res;
+    static char *array;  // or a[256] for bonus
+    int         end;
+    int         lel;
+
+    // 1. Validation
+    if (fd < 0 || fd > 999 || line == NULL || BUFFER_SIZE <= 0)
+        return (-1);
+
+    // 2. Allocate temporary buffer
+    res = 1;
+    buf = (char *)malloc(BUFFER_SIZE + 1);
+
+    // 3. Read until newline found or EOF
+    while (res > 0 && ft_strchr(array, '\n') == NULL)
+    {
+        res = read(fd, buf, BUFFER_SIZE);
+        buf[res] = '\0';
+        array = ft_strjoin(array, buf);  // Accumulate data
+    }
+
+    free(buf);
+
+    // 4. Extract line up to newline
+    end = ft_strlen(array, '\n');
+    *line = ft_substr(array, 0, end);
+
+    // 5. Save remainder for next call
+    lel = ft_strlen(*line, 0);
+    if (res != -1)
+        array = ft_substr2(array, (end + 1), (ft_strlen(array, 0) - lel));
+
+    // 6. Normalize return value
+    if (res > 1)
+        res = 1;
+
+    return (res);
 }
-
-extract line up to newline;
-save remainder for next call;
-return line;
 ```
 
-### Multiple File Descriptors (Bonus)
+### Helper Functions
 
-For the bonus, the static variable becomes an array or linked list indexed by file descriptor:
+Your `get_next_line_utils.c` implements 5 custom functions:
+
+#### 1. `ft_strlen()` - Dual-purpose length
+```c
+size_t ft_strlen(char *str, char c)
+{
+    int counter = 0;
+
+    while (str[counter] != '\0')
+    {
+        if (str[counter] == c)
+            return (counter);  // Return index of 'c'
+        counter++;
+    }
+    return (counter);  // Or total length if 'c' not found
+}
+```
+**Special feature:** Returns index of character `c` if found, otherwise returns total length.
+
+#### 2. `ft_strchr()` - Find newline
+```c
+char *ft_strchr(const char *s, int c)
+{
+    int count = 0;
+
+    if (!s)
+        return (NULL);
+
+    while (s[count])
+    {
+        if (s[count] == c)
+            return ((char *)&s[count]);
+        count++;
+    }
+
+    if (s[count] == '\0' && c == '\0')
+        return ((char *)&s[count]);
+
+    return (NULL);
+}
+```
+**Purpose:** Check if `\n` exists in accumulated buffer.
+
+#### 3. `ft_strjoin()` - Concatenate and free
+```c
+char *ft_strjoin(char *s1, char *s2)
+{
+    char    *array;
+    size_t  i;
+    int     counter;
+
+    if (!s1)
+    {
+        s1 = malloc(sizeof 1);
+        s1[0] = '\0';
+    }
+
+    // Allocate new string
+    array = malloc((ft_strlen(s1, 0) + ft_strlen(s2, 0) + 1) * sizeof(char));
+    if (!array)
+        return (NULL);
+
+    // Copy s1 then s2
+    counter = 0;
+    i = 0;
+    while (i < ft_strlen(s1, 0))
+        array[counter++] = s1[i++];
+
+    i = 0;
+    while (i < ft_strlen(s2, 0))
+        array[counter++] = s2[i++];
+
+    array[counter] = '\0';
+    free(s1);  // Free old static buffer
+    return (array);
+}
+```
+**Key behavior:** Frees `s1` (old static buffer) automatically.
+
+#### 4. `ft_substr()` - Extract substring
+```c
+char *ft_substr(char *s, unsigned int start, size_t len)
+{
+    char            *array;
+    unsigned char   *src;
+    size_t          dstcount;
+
+    src = (unsigned char *)s;
+    dstcount = 0;
+
+    if (!src)
+        return (NULL);
+
+    array = malloc((len + 1) * sizeof(char));
+    if (!array)
+        return (NULL);
+
+    if (start >= ft_strlen(s, 0))
+    {
+        array[0] = '\0';
+        return (array);
+    }
+
+    while (dstcount < len)
+        array[dstcount++] = src[start++];
+
+    array[dstcount] = '\0';
+    return (array);
+}
+```
+**Purpose:** Extract the line (from 0 to newline position).
+
+#### 5. `ft_substr2()` - Extract and free
+```c
+char *ft_substr2(char *s, unsigned int start, size_t len)
+{
+    // Same as ft_substr but...
+
+    if (start >= ft_strlen(s, 0))
+    {
+        free(s);    // Free source
+        free(array);
+        return (NULL);
+    }
+
+    // ... copy substring ...
+
+    free(s);  // Free old static buffer after extraction
+    return (array);
+}
+```
+**Key difference:** Frees `s` (old static buffer) after extracting remainder.
+
+### Design Insights
+
+#### Why Two substr Functions?
+
+- **`ft_substr()`**: Used for extracting the **line** to return (doesn't free source)
+- **`ft_substr2()`**: Used for extracting the **remainder** (frees old static buffer)
+
+#### Memory Management Flow
+
+```
+Initial state:
+  static array = NULL
+
+After 1st read:
+  static array = "Hello\nWorld"
+
+Extract line:
+  *line = ft_substr(array, 0, 5)  → "Hello"
+
+Update static:
+  array = ft_substr2(array, 6, 5)  → "World" (old array freed inside)
+
+Next call:
+  static array still has "World"
+```
+
+#### Bonus: Multiple File Descriptors
 
 ```c
-static char *buffers[OPEN_MAX];  // One buffer per possible FD
+static char *a[256];  // Array of 256 pointers
 
-// Or using a linked list:
-typedef struct s_fd_list
-{
-    int             fd;
-    char            *buffer;
-    struct s_fd_list *next;
-}   t_fd_list;
-
-static t_fd_list *fd_list;  // Single static variable managing all FDs
+// Each fd has its own buffer
+a[3] → "data from fd 3"
+a[5] → "data from fd 5"
+a[7] → "data from fd 7"
 ```
 
-### Key Challenges Solved
-
-1. **Partial line reads**: Handling lines longer than BUFFER_SIZE
-2. **Leftover management**: Preserving unprocessed data between calls
-3. **Memory efficiency**: Allocating only what's needed
-4. **Edge cases**: Empty lines, no trailing newline, BUFFER_SIZE of 1
-5. **Multiple FDs**: Maintaining independent state for each descriptor
+**Supports:** Up to 256 simultaneous file descriptors.
 
 ---
 
@@ -352,23 +459,44 @@ static t_fd_list *fd_list;  // Single static variable managing all FDs
 
 ```
 get_next_line/
-├── 📄 get_next_line.h              # Header with prototypes and definitions
-├── 📄 get_next_line.c              # Main GNL implementation
-├── 📄 get_next_line_utils.c        # Helper functions (strlen, strjoin, etc.)
-├── 📄 get_next_line_bonus.h        # Bonus header (multiple FDs)
-├── 📄 get_next_line_bonus.c        # Bonus implementation
-├── 📄 get_next_line_utils_bonus.c  # Bonus helper functions
-└── 📄 README.md                    # This file
+├── 📄 LICENSE                       # MIT License
+├── 📄 get_next_line.h               # Header with prototypes
+├── 📄 get_next_line.c               # Main implementation (static char *array)
+├── 📄 get_next_line_utils.c         # 5 helper functions
+├── 📄 gnlmain.c                     # Root test main
+│
+├── 📂 bonus/                        # Multiple FD support
+│   ├── get_next_line_bonus.h
+│   ├── get_next_line_bonus.c       # (static char *a[256])
+│   └── get_next_line_utils_bonus.c
+│
+├── 📂 GNLmain/                      # Additional test files
+│   ├── gnlmain.c
+│   ├── main.c
+│   └── test1.txt
+│
+├── 📂 mini/                         # Minimal test
+│   └── prugnl.c
+│
+└── 📂 Tests/                        # External testers
+    ├── 42tester-GNL/
+    └── gnlTester/
 ```
 
 ### File Descriptions
 
-| File | Purpose |
-|------|---------|
-| `get_next_line.c` | Core function with static variable and reading logic |
-| `get_next_line_utils.c` | Utility functions (no libft allowed) |
-| `get_next_line.h` | Function prototypes, includes, and BUFFER_SIZE guard |
-| `*_bonus.c/h` | Extended version handling multiple file descriptors |
+| File | Lines | Purpose |
+|------|-------|---------|
+| `get_next_line.c` | ~50 | Main function with `static char *array` |
+| `get_next_line_utils.c` | ~110 | 5 helper functions (strlen, strchr, strjoin, substr, substr2) |
+| `get_next_line.h` | ~20 | Prototypes and BUFFER_SIZE inclusion |
+| `*_bonus.c` | ~50 | Same as mandatory but with `static char *a[256]` |
+
+### Compilation Notes
+
+- **No Makefile** provided (intentional - project doesn't require it)
+- Compile directly with `-D BUFFER_SIZE=value`
+- No libft used (reimplemented necessary functions)
 
 ---
 
@@ -377,40 +505,62 @@ get_next_line/
 ### Test with Different BUFFER_SIZES
 
 ```bash
-# Tiny buffer (stress test)
-gcc -Wall -Wextra -Werror -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c main.c
+# Minimum (stress test)
+gcc -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c gnlmain.c
 
 # Small buffer
-gcc -D BUFFER_SIZE=10 get_next_line.c get_next_line_utils.c main.c
+gcc -D BUFFER_SIZE=10 get_next_line.c get_next_line_utils.c gnlmain.c
 
-# Medium buffer (typical)
-gcc -D BUFFER_SIZE=4096 get_next_line.c get_next_line_utils.c main.c
+# Typical
+gcc -D BUFFER_SIZE=4096 get_next_line.c get_next_line_utils.c gnlmain.c
 
-# Large buffer
-gcc -D BUFFER_SIZE=1000000 get_next_line.c get_next_line_utils.c main.c
+# Large
+gcc -D BUFFER_SIZE=1000000 get_next_line.c get_next_line_utils.c gnlmain.c
+```
+
+### Included Test Files
+
+Your repository includes several test mains:
+
+```bash
+# Root level test
+gcc -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c gnlmain.c -o test
+./test GNLmain/test1.txt
+
+# GNLmain directory tests
+gcc -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c GNLmain/main.c -o test
+./test
+
+# Minimal test
+gcc -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c mini/prugnl.c -o test
+./test
 ```
 
 ### Edge Cases to Test
 
-- **Empty file**: File with no content
-- **Single line, no newline**: File ending without `\n`
-- **Only newlines**: File with only `\n` characters
-- **Very long lines**: Lines exceeding several BUFFER_SIZE
-- **BUFFER_SIZE = 1**: Most challenging scenario
-- **Invalid FD**: Negative or closed file descriptor
-- **Multiple files**: Alternating reads between different FDs (bonus)
-- **stdin with CTRL+D**: Terminal input handling
+- **Empty file**: No content
+- **Single line no newline**: `"Hello"` (no `\n` at end)
+- **Only newlines**: File with just `\n\n\n`
+- **Very long lines**: Lines exceeding BUFFER_SIZE multiple times
+- **BUFFER_SIZE = 1**: Most challenging (1 char at a time)
+- **Invalid FD**: `-1`, `1000`, closed descriptor
+- **Multiple files (bonus)**: Alternating reads
 
-### Community Testers
+### External Testers
 
-- **[Francinette](https://github.com/xicodomingues/francinette)** - Comprehensive tester
-- **[gnlTester](https://github.com/Tripouille/gnlTester)** - Specialized GNL tests
-- **[gnl_lover](https://github.com/charMstr/GNL_lover)** - Edge case focused
+Included in `Tests/` directory:
+
+- **42tester-GNL** - Comprehensive tests
+- **gnlTester** - Edge case focused
+
+```bash
+cd Tests/gnlTester
+make
+```
 
 ### Manual Test Example
 
 ```c
-// test.c
 #include "get_next_line.h"
 #include <fcntl.h>
 #include <stdio.h>
@@ -420,18 +570,18 @@ int main(void)
     int     fd;
     char    *line;
     int     ret;
-    int     line_count;
+    int     count;
 
     fd = open("test.txt", O_RDONLY);
-    line_count = 1;
+    count = 1;
 
     while ((ret = get_next_line(fd, &line)) > 0)
     {
-        printf("Line %d: [%s]\n", line_count++, line);
+        printf("Line %d: [%s]\n", count++, line);
         free(line);
     }
 
-    printf("\nReturn value: %d\n", ret);
+    printf("\nFinal return: %d\n", ret);
     close(fd);
     return (0);
 }
@@ -441,41 +591,62 @@ int main(void)
 
 ## 💡 What I Learned
 
-Through this project, I gained deep understanding of:
+Through this project, I gained understanding of:
 
-- ✅ **Static Variables**: How they maintain state across function calls with function-level scope
-- ✅ **File Descriptors**: Working with FDs for files, stdin, and other input sources
-- ✅ **Buffer Management**: Efficiently handling partial reads and leftover data
-- ✅ **Memory Management**: Dynamic allocation, careful freeing, and leak prevention
-- ✅ **String Manipulation**: Building strings dynamically without standard library
+- ✅ **Static Variables**: Function-level persistent storage across calls
+- ✅ **File Descriptors**: Working with `read()` system call and FD management
+- ✅ **Buffer Management**: Accumulating data across multiple reads
+- ✅ **Memory Management**: Strategic freeing inside helper functions
+- ✅ **String Manipulation**: Building custom string functions without libft
 - ✅ **Edge Case Handling**: EOF without newline, empty files, various BUFFER_SIZES
-- ✅ **State Persistence**: Maintaining independent state for multiple file descriptors
-- ✅ **Read System Call**: Low-level file I/O and understanding return values
+- ✅ **Multiple FD State**: Using static arrays indexed by file descriptor
+- ✅ **Pointer to Pointer**: Understanding `char **line` parameter
 
 ### Key Challenges
 
-1. **Understanding Static Variables**: Grasping how static variables persist between calls but remain local in scope
-2. **Leftover Management**: Properly storing and retrieving unprocessed buffer data
-3. **Dynamic Buffer Sizes**: Making the function work efficiently with any BUFFER_SIZE
-4. **Multiple File Descriptors**: Managing state for multiple FDs without global variables (bonus)
-5. **Memory Leak Prevention**: Ensuring all allocated memory is properly freed
-6. **Edge Cases**: Handling unusual inputs like BUFFER_SIZE=1 or files without trailing newline
+1. **Memory Management Strategy**: Deciding when to free the static buffer (solved with `ft_strjoin` and `ft_substr2` freeing automatically)
+2. **ft_strlen Dual Purpose**: Making it return index of character OR full length
+3. **NULL Static Initialization**: Handling first call when static variable is NULL
+4. **Remainder Calculation**: Computing correct indices for leftover data
+5. **Return Value Logic**: Converting `read()` return to 1/0/-1 format
+6. **Bonus Array Size**: Choosing 256 to support multiple FDs
+
+### Design Decisions
+
+**Why `ft_strjoin` frees s1?**
+- Old static buffer no longer needed after concatenation
+- Simplifies memory management in main function
+
+**Why two substr functions?**
+- `ft_substr`: Extract line (keep source intact)
+- `ft_substr2`: Extract remainder (free source)
+
+**Why `ft_strlen` takes a char parameter?**
+- Dual purpose: find character index OR get full length
+- Reduces number of helper functions needed
 
 ---
 
 ## 📏 Norm Compliance
 
-This project strictly follows the **42 Norm** (Norminette v3):
+This project follows the **42 Norm** (Norminette v3):
 - ✅ Maximum 25 lines per function
 - ✅ Maximum 5 functions per file
-- ✅ Only allowed functions: `read`, `malloc`, `free`
+- ✅ Only `read`, `malloc`, `free` allowed
 - ✅ No global variables (static variables allowed)
 - ✅ No memory leaks
-- ✅ No segmentation faults or undefined behavior
+- ✅ No forbidden functions used
+
+**Validation:**
+- FD range: 0-999
+- BUFFER_SIZE > 0
+- NULL pointer checks
 
 ---
 
 ## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file for details.
 
 This project is part of the 42 School curriculum. Feel free to use and learn from this code, but please don't copy it for your own 42 projects. Understanding comes from doing it yourself! 🚀
 
@@ -483,11 +654,9 @@ This project is part of the 42 School curriculum. Feel free to use and learn fro
 
 ## 🔗 Related Projects
 
-This function complements other 42 projects:
-
-- [libft](https://github.com/Z3n42/42_libft) - Custom C library (though not used in GNL)
-- [ft_printf](https://github.com/Z3n42/ft_printf) - Formatted output function
-- Future projects requiring file parsing and line-by-line processing
+- **[libft](https://github.com/Z3n42/42_libft)** - Custom C library (not used in GNL per subject rules)
+- **[ft_printf](https://github.com/Z3n42/ft_printf)** - Formatted output
+- **[fdf](https://github.com/Z3n42/fdf)** - Uses GNL for parsing map files
 
 ---
 

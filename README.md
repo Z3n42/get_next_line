@@ -35,16 +35,54 @@
 
 ## 🎯 About the Project
 
-**Get Next Line** challenges you to implement a function that reads a file line by line. Each call to `get_next_line()` returns the next line from a file descriptor, making it possible to read text files efficiently without loading the entire content into memory.
+**Get Next Line** challenges the implementation of a function that reads a file line by line. Each call to `get_next_line()` returns the next line from a file descriptor, making it possible to read text files efficiently without loading the entire content into memory.
 
 ### Why Get Next Line?
 
 This project introduces **static variables** - one of the most powerful concepts in C programming:
-- **File I/O operations** - Reading large files efficiently
-- **Persistent data** - Maintaining context between function calls
-- **Buffer management** - Handling partial reads and leftovers
-- **Memory optimization** - Reading only what's needed at each call
-- **Multiple file descriptors** - Managing state for different sources (bonus)
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 📖 Core Functionality
+- Line-by-line reading from any file descriptor
+- Dynamic buffer size via `BUFFER_SIZE` macro
+- Returns line **without** `\n` character
+- Memory leak prevention and cleanup
+
+</td>
+<td width="50%" valign="top">
+
+### ⚡ Performance
+- Static variable optimization for persistence
+- Minimal memory allocation overhead
+- Efficient string manipulation
+- Buffer management across calls
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🎯 Bonus Features
+- **Multiple file descriptor support (up to 256)**
+- Independent buffer management per fd
+- Array-based static storage (`a[256]`)
+- Concurrent read operations
+
+</td>
+<td width="50%" valign="top">
+
+### 🛡️ Robustness
+- Edge case handling (empty files, no newline)
+- Valid fd range: 0-999
+- Invalid fd detection and error handling
+- Proper return values: 1/0/-1
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -63,10 +101,10 @@ git clone https://github.com/Z3n42/get_next_line.git
 cd get_next_line
 
 # Compile with custom BUFFER_SIZE (mandatory part)
-gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c your_main.c -o gnl_test
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c gnlmain.c -o gnl_test
 
 # Compile with bonus (multiple file descriptors)
-gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 bonus/get_next_line_bonus.c bonus/get_next_line_utils_bonus.c your_main.c -o gnl_bonus
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 bonus/get_next_line_bonus.c bonus/get_next_line_utils_bonus.c gnlmain.c -o gnl_bonus
 ```
 
 The `BUFFER_SIZE` can be any positive integer.
@@ -77,7 +115,7 @@ The `BUFFER_SIZE` can be any positive integer.
 
 ### Including in Project
 
-1. **Copy files to your project:**
+1. **Copy files to the project:**
 ```bash
 cp get_next_line.c get_next_line_utils.c get_next_line.h your_project/
 ```
@@ -221,19 +259,72 @@ int get_next_line(int fd, char **line);
 
 ### Static Variable Strategy
 
-Implementation uses a **single static variable** to preserve data:
+Implementation uses static variables to preserve data between function calls:
 
-#### Mandatory Version
+<table>
+<tr>
+<th width="50%">Mandatory: <code>static char *array</code></th>
+<th width="50%">Bonus: <code>static char *a[256]</code></th>
+</tr>
+<tr>
+<td valign="top">
+
+**Structure:**
 ```c
-static char *array;  // Persists between calls
+static char *array;
 ```
 
-#### Bonus Version (Multiple FDs)
+**Characteristics:**
+- Single pointer to string
+- Persists between function calls
+- One file descriptor at a time
+- Simpler memory management
+
+**Limitations:**
+- Cannot handle multiple open fds
+- Previous fd data lost on new fd call
+- Sequential read operations only
+
+</td>
+<td valign="top">
+
+**Structure:**
 ```c
-static char *a[256];  // Array indexed by fd (supports up to 256 FDs)
+static char *a[256];
 ```
+
+**Characteristics:**
+- Array of 256 pointers indexed by fd
+- Independent persistence per descriptor
+- Concurrent multi-fd support (0-255)
+- Isolated state management
+
+**Advantages:**
+- Read from multiple files simultaneously
+- No data corruption between fds
+- Real-world application readiness
+- Clean separation of concerns
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+**Memory Considerations:**
+- Both approaches maintain state between calls using static storage
+- Array version uses more memory: `256 * sizeof(char*)` vs `sizeof(char*)`
+- Bonus version prevents data loss when switching between file descriptors
+- Mandatory version sufficient for single-file reading scenarios
+- Valid fd range: **0-999** (bonus supports 0-255 for static array indexing)
+
+</td>
+</tr>
+</table>
 
 ### Core Algorithm
+
+<details>
+<summary><b>Main Function Implementation</b></summary>
 
 ```c
 int get_next_line(int fd, char **line)
@@ -279,11 +370,24 @@ int get_next_line(int fd, char **line)
 }
 ```
 
+**Key Design Decisions:**
+- `array` (or `a[fd]` in bonus) persists between calls via static storage
+- Read loop continues until `\n` found or EOF reached
+- Line extraction without `\n` character
+- Remainder saved for next invocation
+- Return normalized to 1/0/-1
+
+</details>
+
+---
+
 ### Helper Functions
 
-`get_next_line_utils.c` implements 5 custom functions:
+The implementation includes 5 custom helper functions in `get_next_line_utils.c` (~110 lines):
 
-#### 1. `ft_strlen()` - Dual-purpose length
+<details>
+<summary><b>1. ft_strlen() - Dual-Purpose Length Calculation</b></summary>
+
 ```c
 size_t ft_strlen(char *str, char c)
 {
@@ -298,9 +402,18 @@ size_t ft_strlen(char *str, char c)
     return (counter);  // Or total length if 'c' not found
 }
 ```
-**Special feature:** Returns index of character `c` if found, otherwise returns total length.
 
-#### 2. `ft_strchr()` - Find newline
+**Special Feature:** Returns index of character `c` if found, otherwise returns total length.
+
+**Usage:**
+- `ft_strlen(str, '\n')` → index of newline
+- `ft_strlen(str, 0)` → total string length
+
+</details>
+
+<details>
+<summary><b>2. ft_strchr() - Character Search</b></summary>
+
 ```c
 char *ft_strchr(const char *s, int c)
 {
@@ -322,9 +435,16 @@ char *ft_strchr(const char *s, int c)
     return (NULL);
 }
 ```
+
 **Purpose:** Check if `\n` exists in accumulated buffer.
 
-#### 3. `ft_strjoin()` - Concatenate and free
+**Return:** Pointer to first occurrence of character, or NULL if not found.
+
+</details>
+
+<details>
+<summary><b>3. ft_strjoin() - String Concatenation with Auto-Free</b></summary>
+
 ```c
 char *ft_strjoin(char *s1, char *s2)
 {
@@ -358,9 +478,16 @@ char *ft_strjoin(char *s1, char *s2)
     return (array);
 }
 ```
-**Key behavior:** Frees `s1` (old static buffer) automatically.
 
-#### 4. `ft_substr()` - Extract substring
+**Key Behavior:** Automatically frees `s1` (old static buffer) after concatenation.
+
+**Memory Management:** Simplifies main function by handling old buffer cleanup internally.
+
+</details>
+
+<details>
+<summary><b>4. ft_substr() - Substring Extraction</b></summary>
+
 ```c
 char *ft_substr(char *s, unsigned int start, size_t len)
 {
@@ -391,13 +518,32 @@ char *ft_substr(char *s, unsigned int start, size_t len)
     return (array);
 }
 ```
-**Purpose:** Extract the line (from 0 to newline position).
 
-#### 5. `ft_substr2()` - Extract and free
+**Purpose:** Extract the line (from 0 to newline position) to return to caller.
+
+**Note:** Does NOT free source string - used for line extraction.
+
+</details>
+
+<details>
+<summary><b>5. ft_substr2() - Substring Extraction with Auto-Free</b></summary>
+
 ```c
 char *ft_substr2(char *s, unsigned int start, size_t len)
 {
-    // Same as ft_substr but...
+    char            *array;
+    unsigned char   *src;
+    size_t          dstcount;
+
+    src = (unsigned char *)s;
+    dstcount = 0;
+
+    if (!src)
+        return (NULL);
+
+    array = malloc((len + 1) * sizeof(char));
+    if (!array)
+        return (NULL);
 
     if (start >= ft_strlen(s, 0))
     {
@@ -406,20 +552,44 @@ char *ft_substr2(char *s, unsigned int start, size_t len)
         return (NULL);
     }
 
-    // ... copy substring ...
+    while (dstcount < len)
+        array[dstcount++] = src[start++];
 
+    array[dstcount] = '\0';
     free(s);  // Free old static buffer after extraction
     return (array);
 }
 ```
-**Key difference:** Frees `s` (old static buffer) after extracting remainder.
+
+**Key Difference:** Frees `s` (old static buffer) after extracting remainder.
+
+**Purpose:** Update static buffer with leftover data for next call.
+
+</details>
+
+---
 
 ### Design Insights
 
 #### Why Two substr Functions?
 
-- **`ft_substr()`**: Used for extracting the **line** to return (doesn't free source)
-- **`ft_substr2()`**: Used for extracting the **remainder** (frees old static buffer)
+<table>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+<th>Frees Source?</th>
+</tr>
+<tr>
+<td><code>ft_substr()</code></td>
+<td>Extract the <strong>line</strong> to return</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><code>ft_substr2()</code></td>
+<td>Extract the <strong>remainder</strong> for static buffer</td>
+<td>✅ Yes</td>
+</tr>
+</table>
 
 #### Memory Management Flow
 
@@ -427,31 +597,32 @@ char *ft_substr2(char *s, unsigned int start, size_t len)
 Initial state:
   static array = NULL
 
-After 1st read:
+After 1st read (buffer contains "Hello\nWorld"):
   static array = "Hello\nWorld"
 
 Extract line:
-  *line = ft_substr(array, 0, 5)  → "Hello"
+  *line = ft_substr(array, 0, 5)  → "Hello" (array still intact)
 
 Update static:
-  array = ft_substr2(array, 6, 5)  → "World" (old array freed inside)
+  array = ft_substr2(array, 6, 5)  → "World" (old array freed inside ft_substr2)
 
 Next call:
-  static array still has "World"
+  static array still has "World" available
 ```
 
-#### Bonus: Multiple File Descriptors
+#### Helper Function Design Philosophy
 
-```c
-static char *a[256];  // Array of 256 pointers
+**ft_strlen with char parameter:**
+- Dual purpose: find character index OR get full length
+- `ft_strlen(str, '\n')` returns index of newline
+- `ft_strlen(str, 0)` returns total length
+- Reduces number of separate helper functions needed
 
-// Each fd has its own buffer
-a[3] → "data from fd 3"
-a[5] → "data from fd 5"
-a[7] → "data from fd 7"
-```
-
-**Supports:** Up to 256 simultaneous file descriptors.
+**Auto-freeing helpers:**
+- `ft_strjoin` frees s1 (old buffer no longer needed)
+- `ft_substr2` frees s (old buffer after extraction)
+- Simplifies memory management in main function
+- Reduces risk of memory leaks
 
 ---
 
@@ -461,8 +632,8 @@ a[7] → "data from fd 7"
 get_next_line/
 ├── 📄 LICENSE                       # MIT License
 ├── 📄 get_next_line.h               # Header with prototypes
-├── 📄 get_next_line.c               # Main implementation (static char *array)
-├── 📄 get_next_line_utils.c         # 5 helper functions
+├── 📄 get_next_line.c               # Main implementation (~50 lines)
+├── 📄 get_next_line_utils.c         # 5 helper functions (~110 lines)
 ├── 📄 gnlmain.c                     # Root test main
 │
 ├── 📂 bonus/                        # Multiple FD support
@@ -506,16 +677,16 @@ get_next_line/
 
 ```bash
 # Minimum (stress test)
-gcc -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c gnlmain.c
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c gnlmain.c
 
 # Small buffer
-gcc -D BUFFER_SIZE=10 get_next_line.c get_next_line_utils.c gnlmain.c
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=10 get_next_line.c get_next_line_utils.c gnlmain.c
 
 # Typical
-gcc -D BUFFER_SIZE=4096 get_next_line.c get_next_line_utils.c gnlmain.c
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c gnlmain.c
 
 # Large
-gcc -D BUFFER_SIZE=1000000 get_next_line.c get_next_line_utils.c gnlmain.c
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=10000 get_next_line.c get_next_line_utils.c gnlmain.c
 ```
 
 ### Included Test Files
@@ -538,13 +709,48 @@ gcc -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c mini/prugnl.c -o tes
 
 ### Edge Cases to Test
 
-- **Empty file**: No content
-- **Single line no newline**: `"Hello"` (no `\n` at end)
-- **Only newlines**: File with just `\n\n\n`
-- **Very long lines**: Lines exceeding BUFFER_SIZE multiple times
-- **BUFFER_SIZE = 1**: Most challenging (1 char at a time)
-- **Invalid FD**: `-1`, `1000`, closed descriptor
-- **Multiple files (bonus)**: Alternating reads
+<table>
+<tr>
+<th>Test Case</th>
+<th>Description</th>
+<th>Expected Behavior</th>
+</tr>
+<tr>
+<td><b>Empty file</b></td>
+<td>No content</td>
+<td>Return 0 immediately</td>
+</tr>
+<tr>
+<td><b>Single line no newline</b></td>
+<td><code>"Hello"</code> (no <code>\n</code>)</td>
+<td>Return line, then 0</td>
+</tr>
+<tr>
+<td><b>Only newlines</b></td>
+<td>File with <code>\n\n\n</code></td>
+<td>Return empty strings</td>
+</tr>
+<tr>
+<td><b>Very long lines</b></td>
+<td>Lines exceeding BUFFER_SIZE</td>
+<td>Complete line returned</td>
+</tr>
+<tr>
+<td><b>BUFFER_SIZE = 1</b></td>
+<td>1 character at a time</td>
+<td>Works correctly (slow)</td>
+</tr>
+<tr>
+<td><b>Invalid FD</b></td>
+<td><code>-1</code>, <code>1000</code></td>
+<td>Return -1</td>
+</tr>
+<tr>
+<td><b>Multiple files (bonus)</b></td>
+<td>Alternating reads</td>
+<td>Independent state per fd</td>
+</tr>
+</table>
 
 ### External Testers
 
@@ -591,39 +797,41 @@ int main(void)
 
 ## 💡 What I Learned
 
-Through this project, I gained understanding of:
+Through this project, understanding was gained of:
 
 - ✅ **Static Variables**: Function-level persistent storage across calls
-- ✅ **File Descriptors**: Working with `read()` system call and FD management
+- ✅ **File Descriptors**: Working with `read()` system call and FD management (0-999 range)
 - ✅ **Buffer Management**: Accumulating data across multiple reads
 - ✅ **Memory Management**: Strategic freeing inside helper functions
 - ✅ **String Manipulation**: Building custom string functions without libft
 - ✅ **Edge Case Handling**: EOF without newline, empty files, various BUFFER_SIZES
-- ✅ **Multiple FD State**: Using static arrays indexed by file descriptor
+- ✅ **Multiple FD State**: Using static arrays (`a[256]`) indexed by file descriptor
 - ✅ **Pointer to Pointer**: Understanding `char **line` parameter
 
 ### Key Challenges
 
 1. **Memory Management Strategy**: Deciding when to free the static buffer (solved with `ft_strjoin` and `ft_substr2` freeing automatically)
-2. **ft_strlen Dual Purpose**: Making it return index of character OR full length
+2. **ft_strlen Dual Purpose**: Making it return index of character OR full length based on parameter
 3. **NULL Static Initialization**: Handling first call when static variable is NULL
-4. **Remainder Calculation**: Computing correct indices for leftover data
-5. **Return Value Logic**: Converting `read()` return to 1/0/-1 format
-6. **Bonus Array Size**: Choosing 256 to support multiple FDs
+4. **Remainder Calculation**: Computing correct indices for leftover data after newline
+5. **Return Value Logic**: Converting `read()` return to 1/0/-1 format as required
+6. **Bonus Array Size**: Using 256 to support multiple FDs with array indexing
 
 ### Design Decisions
 
-**Why `ft_strjoin` frees s1?**
+**Why ft_strjoin frees s1?**
 - Old static buffer no longer needed after concatenation
 - Simplifies memory management in main function
+- Reduces chance of forgetting to free
 
 **Why two substr functions?**
-- `ft_substr`: Extract line (keep source intact)
-- `ft_substr2`: Extract remainder (free source)
+- `ft_substr`: Extract line (keep source intact for further processing)
+- `ft_substr2`: Extract remainder (free source since it's replaced)
 
-**Why `ft_strlen` takes a char parameter?**
+**Why ft_strlen takes a char parameter?**
 - Dual purpose: find character index OR get full length
 - Reduces number of helper functions needed
+- More efficient than calling separate functions
 
 ---
 
@@ -641,6 +849,7 @@ This project follows the **42 Norm** (Norminette v3):
 - FD range: 0-999
 - BUFFER_SIZE > 0
 - NULL pointer checks
+- Return value compliance: 1/0/-1
 
 ---
 
